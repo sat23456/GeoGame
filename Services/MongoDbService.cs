@@ -1,5 +1,7 @@
 using System;
 using GeoGame.Models;
+using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace GeoGame.Services
@@ -35,12 +37,13 @@ namespace GeoGame.Services
             return collection.Find(filter).FirstOrDefault();
         }
 
-        public bool Register(string email, string password)
+        public bool Register(string email, string password, string name)
         {
-            var users = GetCollection<Auth>("AuthData");
+            var authData = GetCollection<Auth>("AuthData");
+            var users = GetCollection<User>("Users");
 
             // Check if email already exists
-            var existingUser = users.Find(u => u.Email == email).FirstOrDefault();
+            var existingUser = authData.Find(u => u.Email == email).FirstOrDefault();
             if (existingUser != null)
             {
                 return false; // Email already exists
@@ -60,12 +63,23 @@ namespace GeoGame.Services
                 PasswordHash = hashedPassword
             };
 
-            users.InsertOne(newUser);
+            User user = new User
+            {
+                UserId = userId,
+                Score = 0,
+                Name = name,
+                Cities = GenerateRandomCityList(),
+                Friends = new List<string>(),
+                CurrentCityId = 0
+            };
+            users.InsertOne(user);
+
+            authData.InsertOne(newUser);
             return true;
         }
 
         // Login Method
-        public bool Login(string email, string password)
+        public Auth Login(string email, string password)
         {
             var users = GetCollection<Auth>("AuthData");
 
@@ -73,12 +87,12 @@ namespace GeoGame.Services
             var user = users.Find(u => u.Email == email).FirstOrDefault();
             if (user == null)
             {
-                return false; // User not found
+                return null; // User not found
             }
 
             // Verify the password
             bool isPasswordValid = BCrypt.Net.BCrypt.Verify(password, user.PasswordHash);
-            return isPasswordValid;
+            return isPasswordValid ? user : null;
         }
 
         public void Update<T>(string collectionName, string keyName, string id, T entity)
@@ -90,7 +104,7 @@ namespace GeoGame.Services
 
         public async Task<bool> MoveToNextCityAsync(string userId)
         {
-            var users = _database.GetCollection<User>("User");
+            var users = _database.GetCollection<User>("Users");
 
             // Find the user by UserId
             var user = await users.Find(u => u.UserId == userId).FirstOrDefaultAsync();
@@ -123,7 +137,7 @@ namespace GeoGame.Services
 
         public async Task<bool> ResetCityListAsync(string userId)
         {
-            var users = _database.GetCollection<User>("User");
+            var users = _database.GetCollection<User>("Users");
 
             // Find the user by UserId
             var user = await users.Find(u => u.UserId == userId).FirstOrDefaultAsync();
@@ -138,7 +152,8 @@ namespace GeoGame.Services
             // Update the user's city list and reset index
             var filter = Builders<User>.Filter.Eq(u => u.UserId, userId);
             var update = Builders<User>.Update.Set(u => u.Cities, user.Cities)
-                                              .Set(u => u.CurrentCityId, user.CurrentCityId);
+                                              .Set(u => u.CurrentCityId, user.CurrentCityId)
+                                              .Set(u => u.Score, 0);
 
             await users.UpdateOneAsync(filter, update);
 
@@ -170,13 +185,13 @@ namespace GeoGame.Services
             await requests.InsertOneAsync(friendRequest);
 
             // Generate and return the URL with the token
-            return $"http://localhost:5000/api/user/acceptFriendRequest?token={friendRequest.Token}&userId={userId}";
+            return $"http://localhost:5111/api/user/acceptFriendRequest?token={friendRequest.Token}";
         }
 
         // Method to add a friend based on the token
         public async Task<string> AddFriendAsync(string userId, string token)
         {
-            var users = _database.GetCollection<User>("User");
+            var users = _database.GetCollection<User>("Users");
 
             // Check if the token is valid and exists in the FriendRequests collection
             var friendRequest = await _database.GetCollection<FriendRequest>("FriendRequests")
@@ -219,7 +234,7 @@ namespace GeoGame.Services
 
         private List<string> GenerateRandomCityList()
         {
-            return Enumerable.Range(1, 100)
+            return Enumerable.Range(1, 3)
                              .OrderBy(x => _random.Next())
                              .Select(x => x.ToString())
                              .ToList();
@@ -238,9 +253,10 @@ namespace GeoGame.Services
 
     public class FriendRequest
     {
+        [BsonId]
+        public ObjectId Id { get; set; }
         public string Token { get; set; }
         public string UserId { get; set; }
-        public string FriendId { get; set; }
         public DateTime ExpirationDate { get; set; } // Optional, to expire the token after a certain time
     }
 }

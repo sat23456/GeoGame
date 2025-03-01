@@ -19,7 +19,7 @@ namespace GeoGame.Controllers
         public ActionResult Register([FromBody] RegisterRequest request)
         {
             // Call the Register method in the MongoDbService
-            bool isRegistered = _mongoDbService.Register(request.Email, request.Password);
+            bool isRegistered = _mongoDbService.Register(request.Email, request.Password, request.Name);
 
             if (isRegistered)
             {
@@ -35,15 +35,15 @@ namespace GeoGame.Controllers
 
         // POST api/user/login
         [HttpPost("login")]
-        public ActionResult Login([FromBody] LoginRequest request)
+        public ActionResult<Auth> Login([FromBody] LoginRequest request)
         {
             // Call the Login method in MongoDbService
-            bool isAuthenticated = _mongoDbService.Login(request.Email, request.Password);
+            Auth user = _mongoDbService.Login(request.Email, request.Password);
 
-            if (isAuthenticated)
+            if (user != null)
             {
                 // Return success message if credentials are correct
-                return Ok("Login successful.");
+                return Ok(user);
             }
             else
             {
@@ -58,6 +58,8 @@ namespace GeoGame.Controllers
     {
         public string Email { get; set; }
         public string Password { get; set; }
+
+        public string Name { get; set; }
     }
 
     // Request model for Login

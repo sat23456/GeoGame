@@ -1,6 +1,8 @@
 using GeoGame.Models;
 using GeoGame.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Bson;
 
 namespace GeoGame.Controllers
 {
@@ -17,26 +19,46 @@ namespace GeoGame.Controllers
 
 
         [HttpGet("{id}")]
-        public ActionResult<User> Get(string id)
+        public ActionResult<FrontUser> Get(string id)
         {
-            var user = _mongoDbService.GetByFilter<User>("User", "userId", id);
+            var user = _mongoDbService.GetByFilter<User>("Users", "UserId", id);
             if (user == null)
             {
                 return NotFound();
             }
-            return Ok(user);
+            FrontUser frontUser = new FrontUser()
+            {
+                Id = user.Id.ToString(),
+                UserId = user.UserId,
+                Name = user.Name,
+                Cities = user.Cities,
+                CurrentCityId = user.CurrentCityId,
+                Friends = user.Friends,
+                Score = user.Score
+            };
+            return Ok(frontUser);
         }
 
         [HttpPatch("update/{userId}")]
-        public async Task<ActionResult> UpdateUser(string userId, [FromBody] User updatedUser)
+        public async Task<ActionResult> UpdateUser(string userId, [FromBody] FrontUser user)
         {
             // Call the MongoDbService method to update the user
-            _mongoDbService.Update<User>("User", "userId", userId, updatedUser);
+            User updatedUser = new User()
+            {
+                Id = new ObjectId(user.Id),
+                UserId = user.UserId,
+                Name = user.Name,
+                Cities = user.Cities,
+                CurrentCityId = user.CurrentCityId,
+                Friends = user.Friends,
+                Score = user.Score
+            };
+            _mongoDbService.Update<User>("Users", "UserId", userId, updatedUser);
             return Ok(); // Return the error message
         }
 
         [HttpPost("moveToNextCity")]
-        public async Task<ActionResult> MoveToNextCity([FromBody] string userId)
+        public async Task<ActionResult> MoveToNextCity([FromQuery] string userId)
         {
             // Call the MongoDbService method to move to the next city
             var result = await _mongoDbService.MoveToNextCityAsync(userId);
@@ -50,7 +72,7 @@ namespace GeoGame.Controllers
         }
 
         [HttpPost("resetCityList")]
-        public async Task<ActionResult> ResetCityList([FromBody] string userId)
+        public async Task<ActionResult> ResetCityList([FromQuery] string userId)
         {
             // Call the MongoDbService method to reset the city list
             var result = await _mongoDbService.ResetCityListAsync(userId);
