@@ -1,3 +1,4 @@
+using GeoGame.Models;
 using MongoDB.Driver;
 
 namespace GeoGame.Services
@@ -25,14 +26,6 @@ namespace GeoGame.Services
             return collection.Find(Builders<T>.Filter.Empty).ToList();
         }
 
-        // Generic method to retrieve one document by id
-        public T GetById<T>(string collectionName, string id)
-        {
-            var collection = GetCollection<T>(collectionName);
-            var filter = Builders<T>.Filter.Eq("_id", id);
-            return collection.Find(filter).FirstOrDefault();
-        }
-
         public T GetByFilter<T>(string collectionName, string filterName, string filterValue)
         {
             var collection = GetCollection<T>(collectionName);
@@ -40,27 +33,60 @@ namespace GeoGame.Services
             return collection.Find(filter).FirstOrDefault();
         }
 
-        // Generic method to create a document
-        public void Create<T>(string collectionName, T entity)
+        public bool Register(string email, string password)
         {
-            var collection = GetCollection<T>(collectionName);
-            collection.InsertOne(entity);
+            var users = GetCollection<Auth>("AuthData");
+
+            // Check if email already exists
+            var existingUser = users.Find(u => u.Email == email).FirstOrDefault();
+            if (existingUser != null)
+            {
+                return false; // Email already exists
+            }
+
+            // Generate random 5-letter UserId
+            string userId = GenerateRandomUserId();
+
+            // Hash the password
+            string hashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
+
+            // Create the new user
+            Auth newUser = new Auth
+            {
+                UserId = userId,
+                Email = email,
+                PasswordHash = hashedPassword
+            };
+
+            users.InsertOne(newUser);
+            return true;
         }
 
-        // Generic method to update a document
-        public void Update<T>(string collectionName, string id, T entity)
+        // Login Method
+        public bool Login(string email, string password)
         {
-            var collection = GetCollection<T>(collectionName);
-            var filter = Builders<T>.Filter.Eq("_id", id);
-            collection.ReplaceOne(filter, entity);
+            var users = GetCollection<Auth>("AuthData");
+
+            // Find the user by email
+            var user = users.Find(u => u.Email == email).FirstOrDefault();
+            if (user == null)
+            {
+                return false; // User not found
+            }
+
+            // Verify the password
+            bool isPasswordValid = BCrypt.Net.BCrypt.Verify(password, user.PasswordHash);
+            return isPasswordValid;
         }
 
-        // Generic method to delete a document
-        public void Delete<T>(string collectionName, string id)
+        // Helper method to generate a random 5-letter UserId
+        private string GenerateRandomUserId()
         {
-            var collection = GetCollection<T>(collectionName);
-            var filter = Builders<T>.Filter.Eq("_id", id);
-            collection.DeleteOne(filter);
+            var random = new Random();
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+            return new string(Enumerable.Range(0, 5)
+                .Select(_ => chars[random.Next(chars.Length)])
+                .ToArray());
         }
     }
 }

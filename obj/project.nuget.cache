@@ -1,9 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "RYnYOfvlIuE=",
+  "dgSpecHash": "bKcNFAPpdvs=",
   "success": true,
   "projectFilePath": "D:\\headout\\GeoGame\\GeoGame.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\satya\\.nuget\\packages\\bcrypt.net-next\\4.0.3\\bcrypt.net-next.4.0.3.nupkg.sha512",
     "C:\\Users\\satya\\.nuget\\packages\\dnsclient\\1.6.1\\dnsclient.1.6.1.nupkg.sha512",
     "C:\\Users\\satya\\.nuget\\packages\\microsoft.aspnetcore.openapi\\9.0.2\\microsoft.aspnetcore.openapi.9.0.2.nupkg.sha512",
     "C:\\Users\\satya\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\2.0.0\\microsoft.extensions.logging.abstractions.2.0.0.nupkg.sha512",
