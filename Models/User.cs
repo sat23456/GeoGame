@@ -18,6 +18,6 @@ namespace GeoGame.Models
 
         public List<string> Cities { get; set; }
 
-        public int NextCityPointer { get; set; }
+        public int CurrentCityId { get; set; }
     }
 }
