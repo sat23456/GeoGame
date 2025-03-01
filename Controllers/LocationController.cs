@@ -33,29 +33,5 @@ namespace GeoGame.Controllers
             }
             return Ok(location);
         }
-
-        // POST api/location
-        [HttpPost]
-        public ActionResult Create([FromBody] Location location)
-        {
-            _mongoDbService.Create("Location", location);
-            return CreatedAtAction(nameof(Get), new { id = location.Id }, location);
-        }
-
-        // PUT api/location/{id}
-        [HttpPut("{id}")]
-        public ActionResult Update(string id, [FromBody] Location location)
-        {
-            _mongoDbService.Update("Location", id, location);
-            return NoContent();
-        }
-
-        // DELETE api/location/{id}
-        [HttpDelete("{id}")]
-        public ActionResult Delete(string id)
-        {
-            _mongoDbService.Delete<Location>("Location", id);
-            return NoContent();
-        }
     }
 }

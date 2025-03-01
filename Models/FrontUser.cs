@@ -3,10 +3,9 @@ using MongoDB.Bson.Serialization.Attributes;
 
 namespace GeoGame.Models
 {
-    public class User
+    public class FrontUser
     {
-        [BsonId]
-        public ObjectId Id { get; set; }  // MongoDB automatically uses _id for the primary key
+        public string Id { get; set; }  // MongoDB automatically uses _id for the primary key
 
         public string UserId { get; set; }
 
