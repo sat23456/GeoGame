@@ -13,6 +13,7 @@ namespace GeoGame.Services
 
         public MongoDbService(IConfiguration configuration)
         {
+            Console.WriteLine(configuration.GetValue<string>("MongoDB:ConnectionString"));
             var client = new MongoClient(configuration.GetValue<string>("MongoDB:ConnectionString"));
             _database = client.GetDatabase(configuration.GetValue<string>("MongoDB:DatabaseName"));
         }
@@ -183,9 +184,9 @@ namespace GeoGame.Services
             // Store the friend request in the FriendRequests collection
             var requests = _database.GetCollection<FriendRequest>("FriendRequests");
             await requests.InsertOneAsync(friendRequest);
-
+            string host = Environment.GetEnvironmentVariable("HOST");
             // Generate and return the URL with the token
-            return $"http://localhost:5111/api/user/acceptFriendRequest?token={friendRequest.Token}";
+            return $"http://{host}/api/user/acceptFriendRequest?token={friendRequest.Token}";
         }
 
         // Method to add a friend based on the token
