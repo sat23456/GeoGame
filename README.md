@@ -16,6 +16,10 @@ This is the backend server for the **GeoGame** application built with **ASP.NET 
     9. [CreateFriendRequest](#8-createfriendrequest) - This generates a link which can be used by other user to join the game
     10. [AcceptFriendRequest](#9-acceptfriendrequest) - Once this link is clicked, both the users will be added to each others list.
 
+## Tech Stack
+
+* ASP .NET
+* MongoDB
 ---
 
 
