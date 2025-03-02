@@ -20,6 +20,12 @@ This is the backend server for the **GeoGame** application built with **ASP.NET 
 
 * ASP .NET
 * MongoDB
+
+## SETUP
+
+* Clone the repo into your local folder and make sure .NET 9.0 SDK is installed
+* Set the required environment variables -> HOST & MONGODB_STRING
+* Open cmd and run the command : dotnet run
 ---
 
 
